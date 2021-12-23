@@ -7,6 +7,7 @@ const request = require("request");
 let { delay, sendToWebhook, webhookURL } = require("./config.json");
 
 let attempts = 0;
+let workingCodeCount = 0;
 
 // Generate a random 11 character string
 function generateCode() {
@@ -15,23 +16,23 @@ function generateCode() {
 	for (let i = 0; i < 11; i++) {
 		result += char.charAt(Math.floor(Math.random() * char.length));
 	}
-	return result
+	return result;
 }
 
 // Check if the code is valid
 function validateCode() {
-	let code = generateCode()
+	let code = generateCode();
 
 	// update the attempts counter
-	attempts++
-	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${attempts} | Checking Code: ${code}`;
+	attempts++;
+	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${attempts} | Working Codes: ${workingCodeCount} | Checking Code: ${code}`;
 
 	// make sure we havent already recorded the code in our database
 	const invalidcodes = JSON.parse(
 		fs.readFileSync("./codes/invalidcodes.json"),
 	);
 
-	if (invalidcodes[code]) return console.log(chalk.gray(`Code ${code} is in our invalid codes database, skipping`))
+	if (invalidcodes[code]) return console.log(chalk.gray(`Code ${code} is in our invalid codes database, skipping`));
 
 	request({
 		method: "GET",
@@ -53,9 +54,9 @@ function validateCode() {
 	}, (error, response) => {
 		let status = response.statusCode;
 
-		if(status == 200) return workingCode(code)
+		if(status == 200) return workingCode(code);
 
-		console.log(chalk.red(`Code: ${code} is invalid.`))
+		console.log(chalk.red(`Code: ${code} is invalid.`));
 
 		// add the invalid code to our database
 		invalidcodes[code] = {
@@ -69,6 +70,7 @@ function validateCode() {
 // This function runs if the code is valid
 function workingCode(code) {
 	console.log(chalk.greenBright(`Found working code: ${code}. URL: https://open.minecraft.net/pocket/realms/invite/${code}`))
+	workingCodeCount++
 
 	// save the code to the working codes data  base
 	const workingcodes = JSON.parse(
@@ -92,7 +94,7 @@ function workingCode(code) {
 		.setDescription(`https://open.minecraft.net/pocket/realms/invite/${code} is a valid realm code`)
 		.setThumbnail('https://i.imgur.com/OY1Hz6m.jpg')
 		.setTimestamp()
-		.setFooter(`https://github.com/MrDiamond64/realm-code-gen`)
+		.setFooter(`https://github.com/MrDiamond64/realm-code-gen`);
 
 	webhookClient.send({
 		username: 'Realm Code Generator',
