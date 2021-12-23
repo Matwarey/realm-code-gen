@@ -1,0 +1,5 @@
+{
+    "delay": 1000,
+    "sendToWebhook": false,
+    "webhookURL": "PUT_WEBHOOK_URL_HERE"
+}

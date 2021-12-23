@@ -1,0 +1,24 @@
+{
+  "name": "realm-code-gen",
+  "version": "1.0.0",
+  "description": "generate realm codes",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrDiamond64/realm-code-gen.git"
+  },
+  "author": "MrDiamond64",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MrDiamond64/realm-code-gen/issues"
+  },
+  "homepage": "https://github.com/MrDiamond64/realm-code-gen#readme",
+  "dependencies": {
+    "chalk": "4.1.2",
+    "discord.js": "^13.3.1",
+    "request": "^2.88.2"
+  }
+}
