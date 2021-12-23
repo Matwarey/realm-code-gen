@@ -10,7 +10,7 @@ let attempts = 0;
 
 // Generate a random 11 character string
 function generateCode() {
-	let char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_";
+	let char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
 	let result = "";
 	for (let i = 0; i < 11; i++) {
 		result += char.charAt(Math.floor(Math.random() * char.length));
