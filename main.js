@@ -2,7 +2,7 @@ const chalk = require("chalk");
 const Discord = require("discord.js");
 const fs = require("fs");
 
-const request = require("request");
+const axios = require('axios');
 
 let { delay, sendToWebhook, webhookURL } = require("./config.json");
 
@@ -34,37 +34,22 @@ function validateCode() {
 
 	if (invalidcodes[code]) return console.log(chalk.gray(`Code ${code} is in our invalid codes database, skipping`));
 
-	request({
-		method: "GET",
-		url: `https://open.minecraft.net/pocket/realms/invite/${code}`,
-		headers: {
-			"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-			"Accept-Encoding": "gzip, deflate, br",
-			"Accept-Language": "en-US",
-			"Connection": "keep-alive",
-			"DNT": 1,
-			"Host": "open.minecraft.net",
-			"Sec-Fetch-Dest": "document",
-			"Sec-Fetch-Mode":"navigate",
-			"Sec-Fetch-Site": "none",
-			"Sec-Fetch-User": "?1",
-			"Upgrade-Insecure-Requests": 1,
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0"
-		}
-	}, (error, response) => {
-		let status = response.statusCode;
+	axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`)
+        .then((res) => {
+            if(typeof(res) == "object") {
+                if(res.status == 200) workingCode(code)
+                    else console.log(res.status)
+            }
+        })
+        .catch(function(error) {
+            console.log(chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid code.`));
 
-		if(status == 200) return workingCode(code);
-
-		console.log(chalk.red(`Code: ${code} is invalid.`));
-
-		// add the invalid code to our database
-		invalidcodes[code] = {
-			isInvalid: true
-		}
-		fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
-
-	});
+            // add the invalid code to our database
+            invalidcodes[code] = {
+                isInvalid: true
+            }
+            fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
+        })
 }
 
 // This function runs if the code is valid
