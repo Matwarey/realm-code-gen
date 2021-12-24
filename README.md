@@ -8,4 +8,3 @@ Generate Minecraft Bedrock Realm Codes
 - Skips already checked invalid codes
 - Sends working codes to a discord webhook
 - Customizable delay
-- Fast

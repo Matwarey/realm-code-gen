@@ -20,7 +20,7 @@ function generateCode() {
 }
 
 // Check if the code is valid
-function validateCode() {
+async function validateCode() {
 	let code = generateCode();
 
 	// update the attempts counter
@@ -32,24 +32,43 @@ function validateCode() {
 		fs.readFileSync("./codes/invalidcodes.json"),
 	);
 
-	if (invalidcodes[code]) return console.log(chalk.gray(`Code ${code} is in our invalid codes database, skipping`));
+	if (invalidcodes[code]) return console.log(chalk.gray(`https://open.minecraft.net/pocket/realms/invite/${code} is in our invalid realm codes database, skipping`));
 
-	axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`)
-        .then((res) => {
-            if(typeof(res) == "object") {
-                if(res.status == 200) workingCode(code)
-                    else console.log(res.status)
+	await axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`, { headers: {
+		"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+		"accept-encoding": "gzip, deflate, br",
+		"accept-language": "en-US",
+		"cache-control": "max-age=0",
+		"connection": "keep-alive",
+		"dnt": "1",
+		"host": "open.minecraft.net",
+		"sec-fetch-dest": "document",
+		"sec-fetch-mode": "navigate",
+		"sec-fetch-site": "none",
+		"sec-fetch-user": "?1",
+		"TE": "trailers",
+		"upgrade-insecure-requests": "1",
+		"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0"
+	}})
+    .then((res) => {
+		console.log(1)
+        if(typeof(res) == "object") {
+            if(res.status == 200) workingCode(code)
+                else console.log(res.status)
             }
-        })
-        .catch(function(error) {
-            console.log(chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid code.`));
+    })
+    .catch(function(error) {
 
-            // add the invalid code to our database
-            invalidcodes[code] = {
-                isInvalid: true
-            }
-            fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
-        })
+        if(error.response.status == 404) {
+			console.log(chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
+
+        	// add the invalid code to our database
+        	invalidcodes[code] = {
+            	isInvalid: true
+        	}
+        	fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
+		} else console.log(`Error. Status code: ${error.response.status}`)
+	})
 }
 
 // This function runs if the code is valid
