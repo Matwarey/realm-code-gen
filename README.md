@@ -8,3 +8,8 @@ Generate Minecraft Bedrock Realm Codes
 - Skips already checked invalid codes
 - Sends working codes to a discord webhook
 - Customizable delay
+
+
+# Notes
+This is for EDUCATIONAL purposes only, do not use it for harm.
+Any delay lower then 100 will probably get you rate limited
