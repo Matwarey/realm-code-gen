@@ -58,7 +58,7 @@ async function validateCode() {
             }
     })
     .catch(function(error) {
-
+		if(!error.response) return;
         if(error.response.status == 404) {
 			console.log(chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
 
@@ -67,7 +67,12 @@ async function validateCode() {
             	isInvalid: true
         	}
         	fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
-		} else console.log(`Error. Status code: ${error.response.status}`)
+		} else {
+			if(error.response.status == 403) {
+				delay++
+				console.log(`You are being ratelimited! Delay has been increased to ${delay}`)
+			} else console.log(`Error. Status code: ${error.response.status}`)
+		}
 	})
 }
 
