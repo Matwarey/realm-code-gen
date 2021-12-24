@@ -61,6 +61,7 @@ async function validateCode() {
 		if(!error.response) return;
         if(error.response.status == 404) {
 			console.log(chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
+			process.stdout.write(`Total Attempts: ${chalk.yellow(attempts)} | Working Codes: ${chalk.greenBright(workingCodeCount)}\r`);
 
         	// add the invalid code to our database
         	invalidcodes[code] = {
@@ -78,8 +79,9 @@ async function validateCode() {
 
 // This function runs if the code is valid
 function workingCode(code) {
-	console.log(chalk.greenBright(`Found working code: ${code}. URL: https://open.minecraft.net/pocket/realms/invite/${code}`))
 	workingCodeCount++
+	console.log(chalk.greenBright(`Found working code: ${code}. URL: https://open.minecraft.net/pocket/realms/invite/${code}`))
+	process.stdout.write(`Total Attempts: ${chalk.yellow(attempts)} | Working Codes: ${chalk.greenBright(workingCodeCount)}\r`);
 
 	// save the code to the working codes data  base
 	const workingcodes = JSON.parse(
@@ -110,8 +112,12 @@ function workingCode(code) {
 		embeds: [embed],
 	});
 }
-
 validateCode();
+
 setInterval(() => {
 	validateCode();
 }, delay);
+
+
+console.clear();
+process.on('unhandledRejection', () => {});
