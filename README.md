@@ -11,5 +11,5 @@ Generate Minecraft Bedrock Realm Codes
 
 
 # Notes
-This is for EDUCATIONAL purposes only, do not use it for harm.<br />
+This tool is reserved for EDUCATIONAL PURPOSES ONLY. I do not endorse the usage ofd this tool and I will not be held liable for the actions caused by this tool.
 Any delay lower then 100 will probably get you rate limited
