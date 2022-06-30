@@ -1,5 +1,4 @@
 const chalk = require("chalk");
-const Discord = require("discord.js");
 const fs = require("fs");
 const axios = require('axios');
 const { getAttempts, updateAttempts, getCorrectCodes, updateCorrectCodes } = require("./methods.js")
@@ -26,7 +25,7 @@ async function validateCode(threadID) {
 
 	// make sure we havent already recorded the code in our database
 	const invalidcodes = JSON.parse(
-		fs.readFileSync("./codes/invalidcodes.json"),
+		fs.readFileSync("./codes/invalidcodes.json")
 	);
 
 	if (invalidcodes[code]) return console.log(chalk.green(`Thread ${threadID} | `) + chalk.green(`https://open.minecraft.net/pocket/realms/invite/${code} is in our invalid realm codes database, skipping`));
@@ -48,8 +47,8 @@ async function validateCode(threadID) {
 	}})
     .then((res) => {
         if(typeof(res) === "object") {
-            if(res.status == 200) workingCode(code, threadID)
-                else console.log(res.status)
+            if(res.status == 200) workingCode(code, threadID);
+                else console.log(res.status);
             }
     })
     .catch(function(error) {
@@ -80,7 +79,7 @@ function workingCode(code, threadID) {
 
 	// save the code to the working codes data  base
 	const workingcodes = JSON.parse(
-		fs.readFileSync("./codes/workingcodes.json"),
+		fs.readFileSync("./codes/workingcodes.json")
 	);
 
 	workingcodes[code] = {
@@ -91,25 +90,35 @@ function workingCode(code, threadID) {
 	// send to webhook stuff
 	if(!sendToWebhook) return;
 
-	let webhookClient = new Discord.WebhookClient({ url: webhookURL });
+	let embedData = {
+		username: "Realm Code Generator",
+		embeds: [{
+			title: "Working Realm Code Found",
+			author: {
+				"name": "Realm Code Generator"
+			},
+			color: 65280,
+			description: `https://open.minecraft.net/pocket/realms/invite/${code} is a valid realm code!`,
+			timestamp: new Date(),
+			thumbnail: {
+				url: "https://i.imgur.com/OY1Hz6m.jpg"
+			},
+			footer: {
+				text: "https://github.com/MrDiamond64/realm-code-gen",
+			}
+		}]
+	}
 
-	const embed = new Discord.MessageEmbed()
-		.setColor('GREEN')
-		.setTitle('Found working code')
-		.setAuthor('Realm Code Generator')
-		.setDescription(`https://open.minecraft.net/pocket/realms/invite/${code} is a valid realm code`)
-		.setThumbnail('https://i.imgur.com/OY1Hz6m.jpg')
-		.setTimestamp()
-		.setFooter(`https://github.com/MrDiamond64/realm-code-gen`);
-
-	webhookClient.send({
-		username: 'Realm Code Generator',
-		embeds: [embed],
-	});
+	let data = {
+		method: "POST",
+		url: webhookURL,
+		headers: { "Content-Type": "application/json" },
+		data: JSON.stringify(embedData),
+	}
+ 	axios(data)
 }
 
 module.exports.startChecking = (threadID) => {
-    validateCode(threadID);
     setInterval(() => {
 		validateCode(threadID);
     }, delay);
