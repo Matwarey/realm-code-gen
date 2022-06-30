@@ -1,3 +1,4 @@
+const fs = require("fs");
 const chalk = require("chalk");	
 const { threads } = require("./config.json");
 const { startChecking } = require("./thread.js");
@@ -15,3 +16,24 @@ console.clear();
 process.on('unhandledRejection', (error) => {
 	console.error(error);
 });
+
+// repair database
+let invalidcodes = JSON.parse(
+	fs.readFileSync("./codes/invalidcodes.json")
+);
+
+let workingcodes = JSON.parse(
+	fs.readFileSync("./codes/workingcodes.json")
+);
+
+if(!invalidcodes.codes) {
+	invalidcodes = {};
+	invalidcodes.codes = [];
+	fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
+}
+
+if(!workingcodes.codes) {
+	workingcodes = {};
+	workingcodes.codes = [];
+	fs.writeFileSync('./codes/workingcodes.json', JSON.stringify(workingcodes));
+}
