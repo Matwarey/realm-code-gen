@@ -1,5 +1,5 @@
 {
-    "delay": 650,
+    "delay": 500,
     "threads": 2,
     "sendToWebhook": false,
     "webhookURL": "PUT_WEBHOOK_HERE",

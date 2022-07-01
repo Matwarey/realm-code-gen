@@ -23,13 +23,6 @@ async function validateCode(threadID) {
     updateAttempts();
 	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
 
-	// make sure we havent already recorded the code in our database
-	let invalidcodes = JSON.parse(
-		fs.readFileSync("./codes/invalidcodes.json")
-	);
-
-	if (invalidcodes.codes.includes(code)) return console.log(chalk.green(`Thread ${threadID} | `) + chalk.green(`https://open.minecraft.net/pocket/realms/invite/${code} is in our invalid realm codes database, skipping`));
-
 	await axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`, { headers: {
 		"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
 		"accept-encoding": "gzip, deflate, br",
@@ -56,13 +49,6 @@ async function validateCode(threadID) {
         if(error.response.status == 404) {
 			console.log(chalk.green(`Thread ${threadID} | `) + chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
 			process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
-
-        	// add the invalid code to our database
-			invalidcodes = JSON.parse(
-				fs.readFileSync("./codes/invalidcodes.json")
-			);
-        	invalidcodes.codes.push(code);
-        	fs.writeFileSync('./codes/invalidcodes.json', JSON.stringify(invalidcodes));
 		} else {
 			if(error.response.status == 403) {
 				console.log(chalk.green(`Thread ${threadID} | `) + `You are being ratelimited! Current thread has been stopped.`)
