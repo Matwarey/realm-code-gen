@@ -9,6 +9,10 @@ module.exports.updateAttempts = () => {
 	attempts++;
 }
 
+module.exports.updateAttemptsDown = () => {
+	attempts--;
+}
+
 module.exports.getCorrectCodes = () => {
 	return correctCodes;
 }

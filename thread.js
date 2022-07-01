@@ -1,13 +1,13 @@
 const chalk = require("chalk");
 const fs = require("fs");
 const axios = require('axios');
-const { getAttempts, updateAttempts, getCorrectCodes, updateCorrectCodes } = require("./methods.js")
+const { getAttempts, updateAttempts, updateAttemptsDown, getCorrectCodes, updateCorrectCodes } = require("./methods.js")
 
 const { delay, sendToWebhook, webhookURL, anonymization } = require("./config.json");
 
 // Generate a random 11 character string
 function generateCode() {
-	let char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
+	const char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
 	let result = "";
 	for (let i = 0; i < 11; i++) {
 		result += char.charAt(Math.floor(Math.random() * char.length));
@@ -17,10 +17,10 @@ function generateCode() {
 
 // Check if the code is valid
 async function validateCode(threadID) {
-	let code = generateCode();
+	const code = generateCode();
 
 	// update the attempts counter
-    updateAttempts();
+	updateAttempts();
 	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
 
 	await axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`, { headers: {
@@ -42,10 +42,10 @@ async function validateCode(threadID) {
         if(typeof(res) === "object") {
             if(res.status == 200) workingCode(code, threadID);
                 else console.log(res.status);
-            }
+        } else updateAttemptsDown();
     })
     .catch(function(error) {
-		if(!error.response) return;
+		if(!error.response) return updateAttemptsDown();
         if(error.response.status == 404) {
 			console.log(chalk.green(`Thread ${threadID} | `) + chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
 			process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
@@ -76,7 +76,7 @@ function workingCode(code, threadID) {
 	// send to webhook stuff
 	if(!sendToWebhook) return;
 
-	let embedData = {
+	const embedData = {
 		username: "Realm Code Generator",
 		embeds: [{
 			title: "Working Realm Code Found",
@@ -95,7 +95,7 @@ function workingCode(code, threadID) {
 		}]
 	}
 
-	let data = {
+	const data = {
 		method: "POST",
 		url: webhookURL,
 		headers: { "Content-Type": "application/json" },

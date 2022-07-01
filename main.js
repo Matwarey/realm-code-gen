@@ -14,7 +14,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 // repair database
-let workingcodes = JSON.parse(
+const workingcodes = JSON.parse(
 	fs.readFileSync("./codes/workingcodes.json")
 );
 
