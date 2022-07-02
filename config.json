@@ -1,5 +1,5 @@
 {
-    "delay": 100,
+    "delay": 150,
     "threads": 2,
     "xboxAuthToken": "PUT_AUTH_TOKEN_HERE",
     "sendToWebhook": false,

@@ -40,9 +40,12 @@ async function validateCode(threadID) {
     })
     .catch(error => {});
 
-    let realmInfo = await response?.json();
+    if(response.status === "Too Many Requests") {
+        console.log(chalk.red(`You are being ratelimited! Realm code generator has been stopped.`))
+        process.exit(0);
+    }
 
-    if(!realmInfo) return;
+    let realmInfo = await response.json();
 
     if(realmInfo.errorMsg) {
         if(realmInfo.errorMsg === "Invalid link") {
