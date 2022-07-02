@@ -2,7 +2,7 @@ const chalk = require("chalk");
 const fs = require("fs");
 const fetch = require("node-fetch");
 
-const { delay, sendToWebhook, xboxAuthToken } = require("./config.json");
+const { delay, sendToWebhook, xboxAuthToken, autoJoin } = require("./config.json");
 
 const { getAttempts, updateAttempts, getCorrectCodes, updateCorrectCodes } = require("./util/updateCounts.js")
 const { send } = require("./util/sendToWebhook.js")
@@ -44,7 +44,11 @@ async function validateCode(threadID) {
         process.exit(0);
     }
 
-    let realmInfo = await response.json();
+    let realmInfo = await response.json()
+      .catch(() => {
+        console.log(`Error 5: ${response}`);
+        process.exit(0);
+      });
 
     if(realmInfo.errorMsg) {
         if(realmInfo.errorMsg === "Invalid link") {
@@ -65,7 +69,25 @@ async function validateCode(threadID) {
 	    workingcodes.codes.push(code);
 	
 	    fs.writeFileSync('./codes/working_codes.json', JSON.stringify(workingcodes));
-
+		
+		if(autoJoin) {
+			fetch(`https://pocket.realms.minecraft.net/invites/v1/link/accept/${code}`, {
+				method: "POST",
+				headers: {
+					"Accept": "*/*",
+					"authorization": xboxAuthToken,
+					"charset": "utf-8",
+					"Client-ref": "",
+					"client-version": "1.19.2",
+					"content-type": "application/json",
+					"user-agent": "MCPE/UWP",
+					"Accept-Language": "en-CA",
+					"Accept-Encoding": "gzip, deflate, br",
+					"Host": "pocket.realms.minecraft.net",
+					"Connection": "keep-alive"
+				}
+			});
+		}
         if(sendToWebhook) send(code, realmInfo);
     } else console.log(`Error 2: ${realmInfo}`);
 }
