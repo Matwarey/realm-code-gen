@@ -1,9 +1,11 @@
 const chalk = require("chalk");
 const fs = require("fs");
-const axios = require('axios');
-const { getAttempts, updateAttempts, updateAttemptsDown, getCorrectCodes, updateCorrectCodes } = require("./methods.js")
+const fetch = require("node-fetch");
 
-const { delay, sendToWebhook, webhookURL, anonymization } = require("./config.json");
+const { delay, sendToWebhook, xboxAuthToken } = require("./config.json");
+
+const { getAttempts, updateAttempts, getCorrectCodes, updateCorrectCodes } = require("./util/updateCounts.js")
+const { send } = require("./util/sendToWebhook.js")
 
 // Generate a random 11 character string
 function generateCode() {
@@ -15,97 +17,59 @@ function generateCode() {
 	return result;
 }
 
-// Check if the code is valid
 async function validateCode(threadID) {
-	const code = generateCode();
+    let code = generateCode();
 
-	// update the attempts counter
-	updateAttempts();
-	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
+    process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
 
-	await axios.get(`https://open.minecraft.net/pocket/realms/invite/${code}`, { headers: {
-		"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-		"accept-encoding": "gzip, deflate, br",
-		"accept-language": "en-US",
-		"connection": "keep-alive",
-		"DNT": Math.random().toFixed(0),
-        "host": "open.minecraft.net",
-		"referer": anonymization.referer[~~(Math.random() * anonymization.referer.length)],
-		"sec-fetch-dest": "document",
-		"sec-fetch-mode": "navigate",
-		"sec-fetch-site": "cross-site",
-		"sec-fetch-user": "?1",
-		"upgrade-insecure-requests": "1",
-		"user-agent": anonymization.user_agents[~~(Math.random() * anonymization.user_agents.length)]
-	}})
-    .then((res) => {
-        if(typeof(res) === "object") {
-            if(res.status == 200) workingCode(code, threadID);
-                else console.log(res.status);
-        } else updateAttemptsDown();
+    const response = await fetch(`https://pocket.realms.minecraft.net/worlds/v1/link/${code}`, {
+	    method: "GET",
+	    headers: {
+            "Accept": "*/*",
+            "authorization": xboxAuthToken,
+            "charset": "utf-8",
+            "Client-ref": "",
+            "client-version": "1.19.2",
+            "content-type": "application/json",
+            "user-agent": "MCPE/UWP",
+            "Accept-Language": "en-CA",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Host": "pocket.realms.minecraft.net",
+            "Connection": "keep-alive"
+        }
     })
-    .catch(function(error) {
-		if(!error.response) return updateAttemptsDown();
-        if(error.response.status == 404) {
-			console.log(chalk.green(`Thread ${threadID} | `) + chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
-			process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
-		} else {
-			if(error.response.status == 403) {
-				console.log(chalk.green(`Thread ${threadID} | `) + `You are being ratelimited! Current thread has been stopped.`)
-				process.exit(0);
-			} else console.log(chalk.green(`Thread ${threadID} | `) + `Error. Status code: ${error.response.status}`)
-		}
-	})
-}
+    .catch(error => {});
 
-// This function runs if the code is valid
-function workingCode(code, threadID) {
-	updateCorrectCodes()
-	console.log(chalk.green(`Thread ${threadID} | `) + chalk.greenBright(`Found working code: ${code}. URL: https://open.minecraft.net/pocket/realms/invite/${code}`))
-	process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
+    let realmInfo = await response?.json();
 
-	// save the code to the working codes data  base
-	const workingcodes = JSON.parse(
-		fs.readFileSync("./codes/workingcodes.json")
-	);
+    if(!realmInfo) return;
 
-	workingcodes.codes.push(code);
+    if(realmInfo.errorMsg) {
+        if(realmInfo.errorMsg === "Invalid link") {
+            updateAttempts();
+            console.log(chalk.green(`Thread ${threadID} | `) + chalk.red(`https://open.minecraft.net/pocket/realms/invite/${code} is an invalid realm code.`));
+            process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
+        } else console.log(`Error 1: ${realmInfo}`)
+    } else if(realmInfo.name) {
+        updateCorrectCodes();
+	    console.log(chalk.green(`Thread ${threadID} | `) + chalk.greenBright(`Found working code: ${code}. URL: https://open.minecraft.net/pocket/realms/invite/${code}`))
+	    process.stdout.write(`Total Attempts: ${chalk.yellow(getAttempts())} | Working Codes: ${chalk.greenBright(getCorrectCodes())}\r`);
+
+	    // save the code to the working codes database
+	    const workingcodes = JSON.parse(
+		    fs.readFileSync("./codes/working_codes.json")
+	    );
+
+	    workingcodes.codes.push(code);
 	
-	fs.writeFileSync('./codes/workingcodes.json', JSON.stringify(workingcodes));
+	    fs.writeFileSync('./codes/working_codes.json', JSON.stringify(workingcodes));
 
-	// send to webhook stuff
-	if(!sendToWebhook) return;
-
-	const embedData = {
-		username: "Realm Code Generator",
-		embeds: [{
-			title: "Working Realm Code Found",
-			author: {
-				"name": "Realm Code Generator"
-			},
-			color: 65280,
-			description: `https://open.minecraft.net/pocket/realms/invite/${code} is a valid realm code!`,
-			timestamp: new Date(),
-			thumbnail: {
-				url: "https://i.imgur.com/OY1Hz6m.jpg"
-			},
-			footer: {
-				text: "https://github.com/MrDiamond64/realm-code-gen",
-			}
-		}]
-	}
-
-	const data = {
-		method: "POST",
-		url: webhookURL,
-		headers: { "Content-Type": "application/json" },
-		data: JSON.stringify(embedData),
-	}
- 	axios(data)
+        if(sendToWebhook) send(code, realmInfo);
+    } else console.log(`Error 2: ${realmInfo}`);
 }
 
-module.exports.startChecking = (threadID) => {
+module.exports.kickstart = function(threadID) {
     setInterval(() => {
-		validateCode(threadID);
+        validateCode(threadID);
     }, delay);
 }
