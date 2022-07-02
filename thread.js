@@ -37,7 +37,7 @@ async function validateCode(threadID) {
             "Host": "pocket.realms.minecraft.net",
             "Connection": "keep-alive"
         }
-    })
+    });
 
     if(response.status === "Too Many Requests" || response.status === 429) {
         console.log(chalk.red(`You are being ratelimited! Realm code generator has been stopped.`))
