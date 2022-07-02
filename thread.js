@@ -20,8 +20,6 @@ function generateCode() {
 async function validateCode(threadID) {
     let code = generateCode();
 
-    process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
-
     const response = await fetch(`https://pocket.realms.minecraft.net/worlds/v1/link/${code}`, {
 	    method: "GET",
 	    headers: {
@@ -38,15 +36,22 @@ async function validateCode(threadID) {
             "Connection": "keep-alive"
         }
     });
-
-    if(response.status === "Too Many Requests" || response.status === 429) {
+	
+	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
+	
+	if(response.statusText === "Unauthorized" && response.status === 401) {
+		console.log(chalk.red(`Error 0: The provided xbox authentication token is invalid.`))
+        process.exit(0);
+	}
+	
+    if(response.statusText === "Too Many Requests" && response.status === 429) {
         console.log(chalk.red(`You are being ratelimited! Realm code generator has been stopped.`))
         process.exit(0);
     }
 
     let realmInfo = await response.json()
-      .catch(() => {
-        console.log(`Error 5: ${response}`);
+      .catch((error) => {
+        console.log(`Error 5: ${error}\n${response}`);
         process.exit(0);
       });
 

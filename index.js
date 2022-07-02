@@ -1,7 +1,7 @@
 const chalk = require("chalk")
 const fs = require("fs");
 
-const { threads, xboxAuthToken } = require("./config.json");
+const { threads } = require("./config.json");
 const { kickstart } = require("./thread.js");
 
 function startThreads() {
@@ -19,12 +19,6 @@ let workingcodes = JSON.parse(
 if(!workingcodes.codes) {
 	workingcodes = {"codes":[]};
 	fs.writeFileSync('./codes/working_codes.json', JSON.stringify(workingcodes));
-}
-
-// make sure an xbox auth token is present
-if(!xboxAuthToken || !xboxAuthToken?.startsWith("XBL3.0 x=") || xboxAuthToken?.length < 25) {
-    console.log(chalk.red(`Error 0: An invalid xbox authentication token was provided.`));
-    process.exit(0);
 }
 
 startThreads();
