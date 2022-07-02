@@ -38,9 +38,8 @@ async function validateCode(threadID) {
             "Connection": "keep-alive"
         }
     })
-    .catch(error => {});
 
-    if(response.status === "Too Many Requests") {
+    if(response.status === "Too Many Requests" || response.status === 429) {
         console.log(chalk.red(`You are being ratelimited! Realm code generator has been stopped.`))
         process.exit(0);
     }
