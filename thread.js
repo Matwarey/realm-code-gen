@@ -65,6 +65,9 @@ async function validateCode(threadID) {
 	    const workingcodes = JSON.parse(
 		    fs.readFileSync("./codes/working_codes.json")
 	    );
+		
+		// if we already found the working code then we skip everything below
+		if(workingcodes.codes.includes(code)) return;
 
 	    workingcodes.codes.push(code);
 	
