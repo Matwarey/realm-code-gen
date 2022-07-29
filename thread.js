@@ -2,10 +2,11 @@ const chalk = require("chalk");
 const fs = require("fs");
 const fetch = require("node-fetch");
 
-const { delay, sendToWebhook, xboxAuthToken, autoJoin } = require("./config.json");
+const { delay, sendToWebhook, autoJoin } = require("./config.json");
 
 const { getAttempts, updateAttempts, getCorrectCodes, updateCorrectCodes } = require("./util/updateCounts.js")
 const { send } = require("./util/sendToWebhook.js")
+const { refreshAuth } = require("./util/refreshAuth.js")
 
 // Generate a random 11 character string
 function generateCode() {
@@ -17,7 +18,7 @@ function generateCode() {
 	return result;
 }
 
-async function validateCode(threadID) {
+async function validateCode(threadID, xboxAuthToken) {
     let code = generateCode();
 
     const response = await fetch(`https://pocket.realms.minecraft.net/worlds/v1/link/${code}`, {
@@ -40,8 +41,7 @@ async function validateCode(threadID) {
 	process.title = `Realm Code Generator - By MrDiamond64 | Total Attempts: ${getAttempts()} | Working Codes: ${getCorrectCodes()} | Checking Code: ${code}`;
 	
 	if(response.statusText === "Unauthorized" && response.status === 401) {
-		console.log(chalk.red(`Error 0: The provided xbox authentication token is invalid.`))
-        process.exit(0);
+		xboxAuthToken = refreshAuth();
 	}
 	
     if(response.statusText === "Too Many Requests" && response.status === 429) {
@@ -100,8 +100,8 @@ async function validateCode(threadID) {
     } else console.log(`Error 2: ${realmInfo}`);
 }
 
-module.exports.kickstart = function(threadID) {
+module.exports.kickstart = function(threadID, xboxAuthToken) {
     setInterval(() => {
-        validateCode(threadID);
+        validateCode(threadID, xboxAuthToken);
     }, delay);
 }

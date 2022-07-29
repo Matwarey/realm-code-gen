@@ -1,7 +1,8 @@
 {
     "delay": 150,
     "threads": 2,
-    "xboxAuthToken": "PUT_AUTH_TOKEN_HERE",
+    "accountEmail": "PUT_ACCOUNT_EMAIL_HERE",
+    "accountPassword": "PUT_ACCOUNT_PASSWORd_HERE",
     "autoJoin": true,
     "sendToWebhook": false,
     "webhookURL": "PUT_WEBHOOK_URL_HERE"
